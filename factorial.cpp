@@ -7,8 +7,9 @@ using namespace std;
 int factorial(int n) {
     if (n < 0)
         throw invalid_argument("not defined for negative numbers.");
-    if (floor(n)==n)
+    if (floor(n)!= n)
         throw invalid_argument("defined for integers only");
+
     if (n == 0)
         return 1;
     int result = 1;
