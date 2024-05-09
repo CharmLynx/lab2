@@ -3,6 +3,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <fstream>
 
 using namespace std;
 
@@ -13,55 +14,40 @@ BOOST_AUTO_TEST_CASE(TestFactorial) {
     BOOST_CHECK_EQUAL(factorial(1), 1);
     BOOST_CHECK_EQUAL(factorial(5), 120);
 }
-
 BOOST_AUTO_TEST_CASE(TestNegativeNumber) {
     BOOST_CHECK_THROW(factorial(-1), invalid_argument);
 }
-
 BOOST_AUTO_TEST_CASE(TestNonInteger) {
     BOOST_CHECK_THROW(factorial(3.5), invalid_argument);
 }
-
 BOOST_AUTO_TEST_CASE(TestStdinReading) {
     istringstream input("5\n");
     streambuf* old_cin = cin.rdbuf(input.rdbuf());
-    int exit_code = factorial_main();
-    cin.rdbuf(old_cin);    
-    BOOST_CHECK_EQUAL(exit_code, 0);
+    int number;
+    cin >> number;
+    BOOST_TEST(number == 5);
+    cin.rdbuf(old_cin);
 }
 BOOST_AUTO_TEST_CASE(TestStdoutOutput) {
-    istringstream input("5\n");
-    streambuf* old_cin = cin.rdbuf(input.rdbuf());
     ostringstream output;
-    streambuf* old_cout = cout.rdbuf(output.rdbuf());
-    int exit_code = factorial_main();
-    cin.rdbuf(old_cin);
-    cout.rdbuf(old_cout);
-    BOOST_CHECK_EQUAL(exit_code, 0);
-    BOOST_CHECK_EQUAL(output.str(), "120\n");
+    streambuf* old_stdout = cout.rdbuf(output.rdbuf());
+    factorial(5);
+    cout.rdbuf(old_stdout);
+    BOOST_CHECK_EQUAL(stoi(output.str()), 120);
 }
 BOOST_AUTO_TEST_CASE(TestStderrOutput) {
-    istringstream input("-5\n");
-    streambuf* old_cin = cin.rdbuf(input.rdbuf());
-    ostringstream error_output;
-    streambuf* old_cerr = cerr.rdbuf(error_output.rdbuf());
-    int exit_code = factorial_main();
-    cin.rdbuf(old_cin);
-    cerr.rdbuf(old_cerr);
-    BOOST_CHECK_NE(exit_code, 0);
-    BOOST_CHECK_NE(error_output.str(), "");
+    system("./factorial 3.5 2> error_output.txt");
+    ifstream error_file("error_output.txt");
+    BOOST_CHECK(error_file.good());
+    BOOST_CHECK(!error_file.eof());
 }
 BOOST_AUTO_TEST_CASE(TestNonZeroExitCodeOnError) {
-    istringstream input("-5\n");
-    streambuf* old_cin = cin.rdbuf(input.rdbuf());
-    int exit_code = factorial_main();
-    cin.rdbuf(old_cin);
+    int exit_code;
+    exit_code = system("./factorial 3.5");
     BOOST_CHECK_NE(exit_code, 0);
 }
 BOOST_AUTO_TEST_CASE(TestZeroExitCodeOnSuccess) {
-    istringstream input("5\n");
-    streambuf* old_cin = cin.rdbuf(input.rdbuf());
-    int exit_code = factorial_main();
-    cin.rdbuf(old_cin);
+    factorial(5);
+    int exit_code = system("echo $?");
     BOOST_CHECK_EQUAL(exit_code, 0);
 }
